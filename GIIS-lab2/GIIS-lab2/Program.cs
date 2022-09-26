@@ -1,43 +1,54 @@
-List<Contact> contacts = new List<Contact>()
-{
-    new Contact(){ Id = Guid.NewGuid(),  Name = "Alex", Address="Kolotushkino" },
-    new Contact(){ Id = Guid.NewGuid(), Name = "Dranik", Address="Bombass" }
-};
+using GIIS_lab2.Repository;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
+builder.Services.AddDbContext<RepositoryContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("MsSQLConnection")));
 
+var app = builder.Build();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-app.MapGet("/api/contacts", () => contacts);
-app.MapGet("/api/contact/{id}", (Guid id) =>
+app.MapGet("/api/contacts", (RepositoryContext db) => db.Contacts);
+app.MapGet("/api/contact/{id}", async (Guid id, RepositoryContext db) =>
 {
-    Contact? contact = contacts.FirstOrDefault(c => c.Id.Equals(id));
+    Contact? contact = await db.Contacts.FirstOrDefaultAsync(c => c.Id.Equals(id));
 
     if (contact == null)
         return Results.NotFound(new { message = "Contact not found"});
     
     return Results.Json(contact);
 });
-app.MapPut("/api/contacts", (Contact contactData) =>
+app.MapGet("/api/contacts/{name}", async (string name, RepositoryContext db) =>
 {
-    Contact? contact = contacts.FirstOrDefault(c => c.Id.Equals(contactData.Id));
+    List<Contact>? contacts = await db.Contacts.Where(c => c.Name.Equals(name)).ToListAsync();
+
+    if (contacts == null)
+        return Results.NotFound(new { message = "No Contact with this name was found" });
+
+    return Results.Json(contacts);
+});
+app.MapPut("/api/contacts", async (Contact contactData, RepositoryContext db) =>
+{
+    Contact? contact = await db.Contacts.FirstOrDefaultAsync(c => c.Id.Equals(contactData.Id));
+
     if (contact == null)
         return Results.NotFound(new { message = "Contact not found" });
 
     contact.Name = contactData.Name;
     contact.Address = contactData.Address;
 
+    await db.SaveChangesAsync();
+
     return Results.Json(contact);
 });
-app.MapPost("/api/contacts", (Contact contactData) =>
+app.MapPost("/api/contacts", async (Contact contactData, RepositoryContext db) =>
 {
-    Contact? contact = contacts.FirstOrDefault(c => c.Id.Equals(contactData.Id));
+    Contact? contact = await db.Contacts.FirstOrDefaultAsync(c => c.Id.Equals(contactData.Id));
 
     if (contact == null)
     {
-        contacts.Add(contactData);
+        await db.Contacts.AddAsync(contactData);
+        await db.SaveChangesAsync();
     }
     else
     {
@@ -45,14 +56,15 @@ app.MapPost("/api/contacts", (Contact contactData) =>
     }
     return Results.Json(contactData);
 });
-app.MapDelete("/api/contact/{id}", (Guid id) =>
+app.MapDelete("/api/contact/{id}", async (Guid id, RepositoryContext db) =>
 {
-    Contact? contact = contacts.FirstOrDefault(c => c.Id.Equals(id));
+    Contact? contact = await db.Contacts.FirstOrDefaultAsync(c => c.Id.Equals(id));
 
     if (contact == null)
         return Results.NotFound(new { message = "Contact not found" });
-    
-    contacts.Remove(contact);
+
+    db.Contacts.Remove(contact);
+    await db.SaveChangesAsync();
 
     return Results.Json(contact);
 });
