@@ -9,10 +9,23 @@ async function getContacts() {
 
       const contacts = await response.json();
       const rows = document.querySelector("tbody");
-
+      rows.innerHTML = '';
       contacts.forEach(contact => rows.append(row(contact)));
    }
 };
+
+async function getContactsByName(name) {
+   const response = await fetch(`/api/contacts/${name}`, {
+      method: "GET",
+      headers: { "Accept": "application/json" }
+   })
+   if (response.ok === true) {
+      const contacts = await response.json();
+      const rows = document.querySelector("tbody");
+      rows.innerHTML = '';
+      contacts.forEach(contact => rows.append(row(contact)));
+   }
+}
 
 async function getContact(id) {
    const response = await fetch(`/api/contact/${id}`, {
@@ -32,7 +45,6 @@ async function getContact(id) {
 }
 
 async function createContact(contactName, contactAddress) {
-
    const response = await fetch("api/contacts", {
       method: "POST",
       headers: { "Accept": "application/json", "Content-Type": "application/json" },
@@ -99,6 +111,11 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
    const id = document.getElementById("contactId").value;
    const name = document.getElementById("ContactName").value;
    const address = document.getElementById("ContactAddress").value;
+   if (name.length < 3 || address.length < 3) {
+      alert("Name and Address must contain more than 2 letters")
+      return;
+   }
+
    console.log(id)
    if (id !== "") {
       await editContact(id, name, address);
@@ -109,10 +126,21 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
    reset();
 });
 
+document.getElementById("findBtn").addEventListener("click", async () => {
+   const name = document.getElementById("ContactName").value;
+   if (name !== "") {
+      await getContactsByName(name);
+   }
+
+})
+
+document.getElementById("getAllBtn").addEventListener("click", async () => await getContacts());
+
 function row(contact) {
 
    const tr = document.createElement("tr");
    tr.setAttribute("data-rowid", contact.id)
+   tr.setAttribute("data-rowdel", "delete")
 
    const nameTd = document.createElement("td");
    nameTd.append(contact.name);
@@ -145,5 +173,7 @@ function guid() {
       (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
    );
 }
+
+
 
 getContacts();
