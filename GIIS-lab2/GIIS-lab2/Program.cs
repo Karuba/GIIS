@@ -1,7 +1,7 @@
 List<Contact> contacts = new List<Contact>()
 {
-    new Contact(){ Name = "Alex", Address="Kolotushkino" },
-    new Contact(){ Name = "Dranik", Address="Bombass" }
+    new Contact(){ Id = Guid.NewGuid(),  Name = "Alex", Address="Kolotushkino" },
+    new Contact(){ Id = Guid.NewGuid(), Name = "Dranik", Address="Bombass" }
 };
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,9 +11,9 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.MapGet("/api/contacts", () => contacts);
-app.MapGet("/api/contact/{name}/{address}", (string name, string address) =>
+app.MapGet("/api/contact/{id}", (Guid id) =>
 {
-    Contact? contact = contacts.FirstOrDefault(c => c.Name.Equals(name) && c.Address.Equals(address));
+    Contact? contact = contacts.FirstOrDefault(c => c.Id.Equals(id));
 
     if (contact == null)
         return Results.NotFound(new { message = "Contact not found"});
@@ -22,7 +22,7 @@ app.MapGet("/api/contact/{name}/{address}", (string name, string address) =>
 });
 app.MapPut("/api/contacts", (Contact contactData) =>
 {
-    Contact? contact = contacts.FirstOrDefault(c => c.Name.Equals(contactData.Name) && c.Address.Equals(contactData.Address));
+    Contact? contact = contacts.FirstOrDefault(c => c.Id.Equals(contactData.Id));
     if (contact == null)
         return Results.NotFound(new { message = "Contact not found" });
 
@@ -33,7 +33,7 @@ app.MapPut("/api/contacts", (Contact contactData) =>
 });
 app.MapPost("/api/contacts", (Contact contactData) =>
 {
-    Contact? contact = contacts.FirstOrDefault(c => c.Name.Equals(contactData.Name) && c.Address.Equals(contactData.Address));
+    Contact? contact = contacts.FirstOrDefault(c => c.Id.Equals(contactData.Id));
 
     if (contact == null)
     {
@@ -45,9 +45,9 @@ app.MapPost("/api/contacts", (Contact contactData) =>
     }
     return Results.Json(contactData);
 });
-app.MapDelete("/api/contact/{name}/{address}", (string name, string address) =>
+app.MapDelete("/api/contact/{id}", (Guid id) =>
 {
-    Contact? contact = contacts.FirstOrDefault(c => c.Name.Equals(name) && c.Address.Equals(address));
+    Contact? contact = contacts.FirstOrDefault(c => c.Id.Equals(id));
 
     if (contact == null)
         return Results.NotFound(new { message = "Contact not found" });
