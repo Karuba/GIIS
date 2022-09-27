@@ -14,6 +14,57 @@ async function getContacts() {
    }
 };
 
+function download(text, name, type) {
+   var a = document.getElementById("a");
+   var file = new Blob([text], { type: type });
+   a.href = URL.createObjectURL(file);
+   a.download = name;
+   a.click();
+}
+
+document.querySelector("#download-file").addEventListener('click', async function () {
+   try {
+      let text_data = await downloadFile();
+      //document.querySelector("#preview-text").textContent = text_data;
+      download(text_data, 'AllContacts.txt', 'text/plain')
+   }
+   catch (e) {
+      alert(e.message);
+   }
+});
+
+document.querySelector("#download-select-file").addEventListener('click', async function () {
+   try {
+      let text_data = "";
+      let items = document.querySelector("tbody").childNodes;
+      for (const i in items) {
+         if (items[i].nodeType == 1) {
+
+            console.log(items[i].innerText.split("\t"))
+            let row = items[i].innerText.split("\t");
+            text_data += "Name: " + row[0] + "; Address: " + row[1] + ";\n";
+         }
+      }
+      //document.querySelector("#preview-text").textContent = text_data;
+      download(text_data, 'SelectContacts.txt', 'text/plain')
+   }
+   catch (e) {
+      alert(e.message);
+   }
+});
+
+async function downloadFile() {
+   let response = await fetch("/api/contacts/file");
+
+   if (response.status != 200) {
+      throw new Error("Server Error");
+   }
+
+   let text_data = await response.text();
+
+   return text_data;
+}
+
 async function getContactsByName(name) {
    const response = await fetch(`/api/contacts/${name}`, {
       method: "GET",
