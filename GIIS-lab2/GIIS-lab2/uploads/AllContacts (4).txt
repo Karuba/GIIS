@@ -1,0 +1,3 @@
+Name: Alex, Address: Kolotushkino;
+Name: awege, Address: asegase;
+Name: Dranik, Address: Bombass;

@@ -111,6 +111,7 @@ async function createContact(contactName, contactAddress) {
    }
    else {
       const error = await response.json();
+      alert(error.message);
       console.log(error.message);
    }
 }
@@ -131,6 +132,7 @@ async function editContact(contactId, contactName, contactAddress) {
    }
    else {
       const error = await response.json();
+      alert(error.message);
       console.log(error.message);
    }
 }
